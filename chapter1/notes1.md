@@ -123,3 +123,14 @@ Authors:
 ##Modeling your data:
 
 To embed or to not embed?
+
+Consider embedding if you need to access multiple tables at once while querying as opposed to accessing the different entities independently and at separate times. For the example of a blog and the entities involved, a blog document containing the tags and comments would make sense for this application because all tables are needed to render the blog. There will be few times where just the tags are needed or just the comments are needed. This is what makes the document advantageous as opposed to creating many joins with a relational database to get the data you want for a certain view.
+
+What are scenarios where you can't embed?
+
+16MB is exceeded for the embedded document
+
+Other consideration when thinking about embedding:
+- you can index subdocument so you shouldn't worry about having to index subdocs when considering to embed
+- duplicating subdocs across the docs is normal and is supported in Mongo
+- If you have data that is shaped differently, then this is not a reason to not embed
