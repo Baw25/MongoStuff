@@ -12,56 +12,25 @@ from pymongo import MongoClient
 connection = MongoClient('localhost', 27017)
 
 
-# def remove_student(student_id):
-#
-#     # get a handle to the school database
-#     db=connection.school
-#     scores = db.scores
-#
-#     try:
-#
-#         result = scores.delete_many({'student_id':student_id})
-#
-#         print "num removed: ", result.deleted_count
-#
-#     except Exception as e:
-#         print "Exception: ", type(e), e
-#
-# def find_student_data(student_id):
-#     # get a handle to the school database
-#     db=connection.school
-#     scores = db.scores
-#
-#     print "Searching for student data for student with id = ", student_id
-#     try:
-#         docs = scores.find({'student_id':student_id})
-#         for doc in docs:
-#             print doc
-#
-#     except Exception as e:
-#         print "Exception: ", type(e), e
-
-
-def delete_lowest_grade():
-    db = connection.mongo_test
+def find_all_hw_assignments():
+    db = connection.students
     grades = db.grades
 
     try:
-        result = grades.delete_many({'student_id':student_id})
+        for i in range(0,200,1):
+            homework = grades.find({'type': 'homework', 'student_id': i})
+            if homework:
+                array = []
+                for hw in homework:
+                    array.append(hw)
 
-        print("num removed: ", result.deleted_count)
+                if array[0]['score'] < array[1]['score']:
+                    grades.delete_one({'_id':  array[0]['_id']})
+                else:
+                    grades.delete_one({'_id': array[1]['_id']})
 
     except Exception as e:
-        print("Exception")
+        print("Error", e)
 
-def find_all_hw_assignments():
-    db = connection.mongo_test
-    grades = db.grades
 
-    try:
-        homework = grades.find({'type': 'homework'})
-
-        print("num removed: ", result.deleted_count)
-
-    except Exception:
-        print("Error")
+find_all_hw_assignments()
