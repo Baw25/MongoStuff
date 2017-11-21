@@ -278,7 +278,162 @@ db.posts.aggregate([
     }
 ])
 
+db.zips.aggregate([
+    {$match: {
+      $and: [
+      {"state": {
+        "$in": ["NY", "CA"]
+        }
+      },
+      {
+        "pop": { $gte: 25000 }
+      }
+      ]
+    }
+  },
+  {'$group':{'_id':'$state', 'average':{$avg:'$pop'}}}
+])
+
 
 HW 5.2  
 
 Please calculate the average population of cities in California (abbreviation CA) and New York (NY) (taken together) with populations over 25,000.
+
+
+use agg
+db.zips.aggregate([{$match: {state: "CA"}}, {$match: {state: "NY"}}])
+
+db.zips.aggregate([
+    {$match:
+     {
+	 state:"NY",
+   state: "CA"
+     }
+    },
+    {$group:
+     {
+	 _id: "$city",
+	 population: {$sum:"$pop"},
+	 zip_codes: {$addToSet: "$_id"}
+     }
+    }
+])
+
+
+use agg
+db.zips.aggregate([
+    {$match:
+     {
+	 state:"NY"
+     }
+    },
+    {$group:
+     {
+	 _id: "$city",
+	 population: {$sum:"$pop"},
+	 zip_codes: {$addToSet: "$_id"}
+     }
+    }
+])
+
+
+Some students have three homework assignments, etc.
+Your task is to calculate the class with the best average student performance. This involves calculating an average for each student in each class of all non-quiz assessments and then averaging those numbers to get a class average. To be clear, each student's average includes only exams and homework grades. Don't include their quiz scores in the calculation.
+
+What is the class_id which has the highest average student performance?
+
+You need to group twice to solve this problem. You must figure out the GPA that each student has achieved in a class and then average those numbers to get a class average. After that, you just need to sort. The class with the lowest average is the class with class_id=2. Those students achieved a class average of 37.6
+
+ex) One document
+
+Steps:
+- flatten the scores array
+- match all documents that are in type exam, homework
+- group by student_id and class_id
+- Calculate avg for each document
+- group again by class_id
+- take the avg for all students under class_id
+- sort the avg scores for each class_id in descending order
+
+{
+	"_id" : ObjectId("50b59cd75bed76f46522c352"),
+	"student_id" : 0,
+	"class_id" : 24,
+	"scores" : [
+		{
+			"type" : "exam",
+			"score" : 4.444435759027499
+		},
+		{
+			"type" : "quiz",
+			"score" : 28.63057857803885
+		},
+		{
+			"type" : "homework",
+			"score" : 86.79352850434199
+		},
+		{
+			"type" : "homework",
+			"score" : 83.9164548767836
+		}
+	]
+}
+
+db.grades.aggregate([
+    {"$unwind": "$scores"},
+    {$match:{"scores.type":{"$in": ["exam", "homework"]}}},
+    {$group:
+     {
+    	 _id: {
+    	     "student_id":"$student_id",
+           "class_id":"$class_id"
+    	 },
+    	  std_class_avg:{$avg:"$scores.score"}
+     }
+    },
+    {$group:
+      {
+        _id: {
+          "class_id":"$_id.class_id"
+        },
+         class_avg:{$avg:"$std_class_avg"}
+      }
+    },
+    {'$sort':{'class_avg':-1}}  
+])
+
+
+Substring problem:
+
+In this problem you will calculate the number of people who live in a zip code in the US where the city starts with one of the following characthers:
+
+B, D, O, G, N or M .
+
+db.zips.aggregate([
+    {$project:
+     {
+    first_char: {$substr : ["$city",0,1]},
+     }
+   }
+])
+
+
+Using the aggregation framework, calculate the sum total of people who are living in a zip code where the city starts with one of those possible first characters. Choose the answer below
+
+You will need to probably change your projection to send more info through than just that first character. Also, you will need a filtering step to get rid of all documents where the city does not start with the select set of initial characters.
+
+Steps:
+-
+
+
+db.zips.aggregate([
+    {$project:
+     {
+       first_char: {$substr : ["$city",0,1]},
+       pop: "$pop",
+       state: "$state"
+     }
+   },
+   {$match:{"first_char":{"$in": ["B", "D", "O", "G", "N", "M"]}}},
+   { $group: { _id : null, sum : { $sum: "$pop" } } }
+])
